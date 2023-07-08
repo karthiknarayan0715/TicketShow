@@ -1,0 +1,10 @@
+# FLASK
+
+__pycache__
+instance
+
+#VUE
+
+node_modules
+.env
+.env.local
