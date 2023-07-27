@@ -7,11 +7,10 @@ import Toast from './components/ToastMessage.Vue';
 const Plugins = {
   install(app) {
     const toastContainer = document.createElement('div');
-    toastContainer.style.position = "absolute"
+    toastContainer.style.position = "relative";
     toastContainer.style.width = "100%"
     toastContainer.style.height = "100%"
     toastContainer.style.top = "0"
-    toastContainer.style.zIndex = "-3"
     document.body.appendChild(toastContainer);
 
     const appInstance = createApp(Toast);
@@ -29,10 +28,27 @@ const Plugins = {
       verify() {
         const {cookies} = useCookies()
         if(cookies.get("jwt")){
-          return true
+          return cookies.get("jwt")
         }
         else{
           return false
+        }
+      },
+      async getUserData(){
+        const {cookies} = useCookies()
+        if(cookies.get("jwt")){
+          const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/users/verify?jwt=${cookies.get('jwt')}`)
+          const data = await response.json()
+          if(data.status == 200)
+          {
+            return data.user
+          }
+          else{
+            return null
+          }
+        }
+        else{
+          return null
         }
       }
     }

@@ -61,7 +61,7 @@ export default {
   </main>
 </template>
 
-<style>
+<style scoped>
 .main{
   display: flex;
   width: 100%;

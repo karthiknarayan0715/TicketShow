@@ -6,14 +6,19 @@ import { useCookies } from 'vue3-cookies';
 export default {
   data() {
     return {
+      user: {},
       dropDown: false,
       isLoggedIn: false
     }
   },
   mounted(){
     this.isLoggedIn = this.$login.verify()
+
+    this.user = this.$login.getUserData()
+    if(!this.user) this.Logout()
   },
   methods: {
+    
     ToggleDropDown(){
       this.dropDown = !this.dropDown
     },
@@ -44,6 +49,14 @@ export default {
       <div class="drop-down" :class="{show: dropDown}">
         <div class="drop-down-content" v-if="dropDown">
           <div class="drop-down-item">Profile</div>
+          <div class="drop-down-item" @click="()=>{
+            this.$router.push(`/venues/`)
+            this.ToggleDropDown()
+          }">Venues</div>
+          <div class="drop-down-item" @click="()=>{
+            this.$router.push(`/shows/`)
+            this.ToggleDropDown()
+          }">Shows</div>
           <div class="drop-down-item" @click="this.Logout">Logout</div>
         </div>
       </div>

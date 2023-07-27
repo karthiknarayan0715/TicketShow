@@ -38,6 +38,7 @@
         bottom: 10px;
         right: 10px;
         width: 300px;
+        z-index: -2000;
         height: 100px;
         border-radius: 5px;
         background-color: antiquewhite;
@@ -46,6 +47,7 @@
     }
     .toast-message.show{
         opacity: 1;
+        z-index: 2000;
     }
     .header{
         width: 100%;

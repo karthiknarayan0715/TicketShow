@@ -40,42 +40,50 @@ class Venue(db.Model):
         self.capacity = capacity
     def as_dict(self):
         d = {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
-        d['shows'] = Shows.query.filter_by(venue_id = self.id)
         return d
     
+class Screening(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"))
+    show_id = db.Column(db.Integer, db.ForeignKey("venue.id"))
+    date_time = db.Column(db.DateTime)
+    price = db.Column(db.Integer, nullable=False)
+    available = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, venue_id, show_id, date_time, price):
+        self.venue_id = venue_id
+        self.show_id = show_id
+        self.date_time = date_time
+        self.price = price
+        venue = Venue.query.filter_by(id = venue_id).first()
+        available = venue.capacity
+        self.available = available
+    def as_dict(self):
+        d = {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
+        d['venue'] = Venue.query.filter_by(id = self.venue_id).first()
+        t = Registrations.query.filter_by(show_id=self.id).all()
+        d['registrations'] = []
+        for i in t:
+            d['registrations'].append(Users.query.filter_by(id=i.user_id).first())
+        return d
 class Shows(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'))
     name = db.Column(db.String)
     desc = db.Column(db.String)
-    rating = db.Column(db.String)
-    date = db.Column(db.DateTime)
     duration = db.Column(db.Integer)
-    tags = db.Column(db.String)
-    price = db.Column(db.Integer)
-    available = db.Column(db.Integer)
+    rating = db.Column(db.String)
 
-    def __init__(self, venue_id, name, desc, rating, date, duration, tags, price, available):
-        self.venue_id = venue_id
+    def __init__(self, name, desc, duration, rating):
         self.name = name
         self.desc = desc
-        self.rating = rating
-        self.date = date
         self.duration = duration
-        self.tags = tags
-        self.price = price
-        self.available = available
+        self.rating = rating
     def as_dict(self):
             #d is data as a dictionary
             #This func returns all the parameters of the show
             #The details on the venue
             #And the details of all the registrations
             d = {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
-            d['venue'] = Venue.query.filter_by(id = self.venue_id).first()
-            t = Registrations.query.filter_by(show_id=self.id).all()
-            d['registrations'] = []
-            for i in t:
-                d['registrations'].append(Users.query.filter_by(id=i.user_id).first())
             return d
 
 class Registrations(db.Model):

@@ -1,4 +1,4 @@
-from flask import Flask, session
+from flask import Flask, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_qrcode import QRcode
@@ -29,3 +29,5 @@ from app.bp_venues import app as shows_bp
 app.register_blueprint(users_bp)
 app.register_blueprint(venues_bp)
 app.register_blueprint(shows_bp)
+
+# print(app.url_map)

@@ -57,7 +57,7 @@ def Login():
             "username": user.username,
             "role": user.role,
             "email": user.email
-        }, key=JWT_SecretKey())
+        }, key=JWT_SecretKey(), algorithm="HS256")
         res = {
             "status": 200,
             "message": "Login successful!",
@@ -70,25 +70,33 @@ def Login():
         }
     return jsonify(res)
     
-@app.route("/verify", methods=["POST"])
+@app.route("/verify", methods=["GET"])
 def Verify():
-    data = request.get_json()
-    jwt_token = request.headers.get("Authorization").split(" ")[1]
+    jwt_token = request.args.get('jwt')
+    print(jwt_token)
     try:
-        data = jwt.decode(jwt_token)
+        data = jwt.decode(jwt_token, key=JWT_SecretKey(), algorithms=["HS256"])
+        print(data)
         user_id = data['id']
         user = Users.query.filter_by(id = user_id).first()
         if user:
             return jsonify({
                 "status": 200,
-                "message": "Verified session!"
+                "message": "Verified session!",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "role": user.role,
+                    "email": user.email
+                }
             })
         else:
             return jsonify({
             "status": 400,
             "message": "Invalid JWT Token!"
         })
-    except:
+    except Exception as e:
+        print(e)
         return jsonify({
             "status": 400,
             "message": "Invalid JWT Token!"
