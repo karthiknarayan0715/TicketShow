@@ -11,6 +11,7 @@ const Plugins = {
     toastContainer.style.width = "100%"
     toastContainer.style.height = "100%"
     toastContainer.style.top = "0"
+    toastContainer.style.pointerEvents = "none";
     document.body.appendChild(toastContainer);
 
     const appInstance = createApp(Toast);

@@ -45,27 +45,23 @@ class Venue(db.Model):
 class Screening(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"))
-    show_id = db.Column(db.Integer, db.ForeignKey("venue.id"))
-    date_time = db.Column(db.DateTime)
+    show_id = db.Column(db.Integer, db.ForeignKey("show.id"))
+    date = db.Column(db.String)
+    time = db.Column(db.String)
     price = db.Column(db.Integer, nullable=False)
     available = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, venue_id, show_id, date_time, price):
+    def __init__(self, venue_id, show_id, date, time, price):
         self.venue_id = venue_id
         self.show_id = show_id
-        self.date_time = date_time
+        self.date = date
+        self.time = time
         self.price = price
         venue = Venue.query.filter_by(id = venue_id).first()
         available = venue.capacity
         self.available = available
     def as_dict(self):
-        d = {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
-        d['venue'] = Venue.query.filter_by(id = self.venue_id).first()
-        t = Registrations.query.filter_by(show_id=self.id).all()
-        d['registrations'] = []
-        for i in t:
-            d['registrations'].append(Users.query.filter_by(id=i.user_id).first())
-        return d
+        return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
 class Shows(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String)
@@ -79,10 +75,6 @@ class Shows(db.Model):
         self.duration = duration
         self.rating = rating
     def as_dict(self):
-            #d is data as a dictionary
-            #This func returns all the parameters of the show
-            #The details on the venue
-            #And the details of all the registrations
             d = {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
             return d
 
@@ -110,6 +102,11 @@ class Ratings(db.Model):
         self.show_id = show_id
         self.rating = rating
         
+class Ticket(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    screening_id = db.Column(db.Integer, db.ForeignKey('screening.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    quantity = db.Column(db.Integer, nullable = False)
 
 db.create_all()
 

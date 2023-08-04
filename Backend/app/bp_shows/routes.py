@@ -8,7 +8,6 @@ from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 
 @app.route('/get', methods=['GET'])
-@VerifyJWT
 def get_shows():
     jwt = request.args.get('jwt')
     if not jwt:
