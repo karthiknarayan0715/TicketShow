@@ -21,15 +21,17 @@
 <template>
     <div class="box">
         <div class="title">
-            <div class="name">{{ name }}</div>
+            <div class="name" @click="this.$router.push('/shows/view?id='+this.id)">{{ name }}</div>
             <div class="id">{{ id }}</div>
         </div>
-        <div class="duration">{{ duration }}</div>
-        <div class="rating">{{ rating }}</div>
-        <div class="description"><div class="text">{{ description.length > 100 ? description.substr(0, 100) + "..." : description }}</div></div>
-        <div class="footer">
-            <div class="box-button" v-if="this.admin" @click="this.$emit('edit')">Edit</div>
-            <div class="box-button red" v-if="admin" @click="this.$emit('delete')">Delete</div>
+        <div class="content">
+            <div class="duration">{{ duration }}</div>
+            <div class="rating">{{ rating }}</div>
+            <div class="description"><div class="text">{{ description.length > 100 ? description.substr(0, 100) + "..." : description }}</div></div>
+            <div class="footer" v-if="this.admin">
+                <div class="box-button" @click="this.$emit('edit')">Edit</div>
+                <div class="box-button red" @click="this.$emit('delete')">Delete</div>
+            </div>
         </div>
     </div>
 </template>
@@ -37,17 +39,26 @@
 <style scoped>
 .box{
     width: 250px;
-    height: 160px;
-    padding: 10px;
+    height: auto;
     border-radius: 10px;
     background-color: #845EC2;
 }
 .title{
+    background-color: #724faa;
     width: 100%;
     height: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
     text-align: center;
     color: white;
     font-weight: bolder;
+}
+.content{
+    width: calc(100% - 20px);
+    margin: 10px;
+    padding-bottom: 10px;
 }
 .name{
     font-size: 24px;
@@ -85,8 +96,10 @@
     text-align: center;
 }
 .footer{
-    width: 100%;
+    width: calc(100%);
     height: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     display: flex;
     justify-content: center;
     align-items: center;

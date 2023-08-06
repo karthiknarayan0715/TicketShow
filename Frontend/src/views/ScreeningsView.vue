@@ -6,7 +6,7 @@ export default {
         return {
           all_shows: [],
           screenings_array: [],
-          show_id: "",
+          show_id: this.$route.query.show_id,
           venue: {},
           screenings: {},
           venue_id: this.$route.query.venue_id,

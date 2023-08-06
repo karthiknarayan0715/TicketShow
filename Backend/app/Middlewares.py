@@ -17,8 +17,9 @@ def VerifyJWT(f):
                     request.user = user
                     return f()
                 else:
-                    return jsonify(message = "Invalid JWT Token!"), 400
+                    return jsonify(message = "Invalid User Data!"), 400
             except Exception as e:
+                print(e)
                 return jsonify(message = "Invalid JWT Token!"), 400
         except Exception as e:
             print(e)

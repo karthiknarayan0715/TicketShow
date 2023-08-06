@@ -26,10 +26,12 @@ from app.bp_users import app as users_bp
 from app.bp_shows import app as venues_bp
 from app.bp_venues import app as shows_bp
 from app.bp_screenings import app as screenings_bp
+from app.bp_tickets import app as tickets_bp
 
 app.register_blueprint(users_bp)
 app.register_blueprint(venues_bp)
 app.register_blueprint(shows_bp)
 app.register_blueprint(screenings_bp)
+app.register_blueprint(tickets_bp)
 
 # print(app.url_map)

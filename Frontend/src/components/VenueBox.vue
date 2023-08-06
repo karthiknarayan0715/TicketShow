@@ -41,17 +41,20 @@
 <style scoped>
 .box{
     width: 250px;
-    height: 160px;
-    padding: 10px;
+    height: 200px;
     border-radius: 10px;
     background-color: #845EC2;
 }
 .title{
-    width: 100%;
+    background-color: #724faa;
+    width: calc(100% - 20px);
     height: 40px;
+    padding: 10px;
     text-align: center;
     color: white;
     font-weight: bolder;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
 }
 .name{
     font-size: 24px;
@@ -68,13 +71,13 @@
 }
 .address{
     width: 100%;
-    height: calc(100% - 40px);
+    height: calc(100% - 60px);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 .address.admin{
-    height: calc(100% - 85px);
+    height: calc(100% - 115px);
 }
 .place{
     width: 100%;

@@ -45,7 +45,7 @@ class Venue(db.Model):
 class Screening(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"))
-    show_id = db.Column(db.Integer, db.ForeignKey("show.id"))
+    show_id = db.Column(db.Integer, db.ForeignKey("shows.id"))
     date = db.Column(db.String)
     time = db.Column(db.String)
     price = db.Column(db.Integer, nullable=False)
@@ -104,9 +104,16 @@ class Ratings(db.Model):
         
 class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     screening_id = db.Column(db.Integer, db.ForeignKey('screening.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     quantity = db.Column(db.Integer, nullable = False)
+
+    def __init__(self, user_id, screening_id, quantity):
+        self.user_id = user_id
+        self.screening_id = screening_id
+        self.quantity = quantity
+    def as_dict(self):
+        return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
 
 db.create_all()
 
