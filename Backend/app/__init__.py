@@ -5,18 +5,25 @@ from flask_qrcode import QRcode
 from flask_cors import CORS
 
 app = Flask(__name__)
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "key"
 
-app.app_context().push()
+from app import workers
 
+app.app_context().push()
 cors = CORS(app)
+
+celery = workers.celery
+
+celery.conf.update(broker_url = 'redis://localhost:6379/1', result_backend = 'redis://localhost:6379/2')
+celery.Task = workers.ContextTask
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 qr = QRcode(app)
+
+from app import tasks
 
 @app.route("/", methods=['GET'])
 def Root():

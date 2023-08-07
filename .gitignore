@@ -2,6 +2,11 @@
 
 __pycache__
 instance
+scripts
+setup.sh
+celerybeat-schedule.db
+dump.rdb
+env
 
 #VUE
 
