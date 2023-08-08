@@ -19,7 +19,7 @@ export default {
     async mounted(){
       if(!this.$login.verify()){
         this.$router.push("/")
-        this.$toast.show("200", "Already logged in!")
+        this.$toast.show("200", "Login first!")
       }
       this.jwt = this.$login.verify()
       this.user = await this.$login.getUserData();

@@ -15,8 +15,10 @@ def get_tickets():
     if not jwt:
         return jsonify(message='JWT not provided'), 400
     try:
+        print(jwt)
         data = DecodeJWT(jwt)
     except Exception as e:
+        print(e)
         return jsonify(message="Invalid JWT Token"), 400
     ticket_id = request.args.get('ticket_id')
     screening_id = request.args.get('screening_id')
@@ -33,7 +35,7 @@ def get_tickets():
             return jsonify(message='Ticket not found'), 404
     else:
         return jsonify(message='Parameters not valid'), 400
-    qr = qrcode.make(f"127.0.0.1:5000/tickets/verify?id={ticket.id}")
+    qr = qrcode.make(f"localhost:5173/verify_ticket?id={ticket.id}")
     buffered = BytesIO()
     qr.save(buffered, format="PNG")
     qr_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')

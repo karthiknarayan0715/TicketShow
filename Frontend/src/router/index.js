@@ -29,11 +29,6 @@ const router = createRouter({
       component: () => import('../views/ShowsView.vue')
     },
     {
-      path: '/shows/view',
-      name: 'shows_view',
-      component: ()=> import('../views/ShowScreeningsView.vue')
-    },
-    {
       path: '/venues',
       name: 'venues',
       component: () => import('../views/VenuesView.vue')
@@ -47,6 +42,16 @@ const router = createRouter({
       path: '/screenings/book',
       name: 'screenings_book',
       component: () => import("../views/ScreeningsBookingView.vue")
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: () => import("../views/SearchView.vue")
+    },
+    {
+      path: '/verify_ticket',
+      name: 'verify_ticket',
+      component: () => import("../views/VerifyTicketView.vue")
     }
   ]
 })

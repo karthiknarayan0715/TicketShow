@@ -21,7 +21,7 @@
 <template>
     <div class="box">
         <div class="title">
-            <div class="name" @click="this.$router.push('/shows/view?id='+this.id)">{{ name }}</div>
+            <div class="name" @click="this.$router.push('/screenings?show_id='+this.id)">{{ name }}</div>
             <div class="id">{{ id }}</div>
         </div>
         <div class="content">
@@ -42,6 +42,9 @@
     height: auto;
     border-radius: 10px;
     background-color: #845EC2;
+}
+.name{
+    cursor: pointer;
 }
 .title{
     background-color: #724faa;

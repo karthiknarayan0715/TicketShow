@@ -17,12 +17,27 @@ def get_screenings():
     except Exception as e:
         return jsonify(message="Invalid JWT Token"), 400
     id = request.args.get('id')
-    if id == None:
-        screenings = Screening.query.all()
-        return jsonify([screening.as_dict() for screening in screenings]), 200
-    else:
+    venue_id = request.args.get('venue_id')
+    show_id = request.args.get('show_id')
+    print(show_id, venue_id)
+    if id != None:
         screenings = Screening.query.get(id)
         return jsonify(screenings.as_dict()), 200
+    elif venue_id != None and show_id != None:
+        screenings = Screening.query.filter_by(show_id=show_id, venue_id=venue_id)
+        return jsonify([screening.as_dict() for screening in screenings]), 200
+    elif venue_id!=None or show_id!=None:
+        if venue_id == None:
+            screenings = Screening.query.filter_by(show_id=show_id)
+            return jsonify([screening.as_dict() for screening in screenings]), 200
+        else:
+            screenings = Screening.query.filter_by(venue_id=venue_id)
+            return jsonify([screening.as_dict() for screening in screenings]), 200
+    else:
+        screenings = Screening.query.all()
+        return jsonify([screening.as_dict() for screening in screenings]), 200
+        
+        
 
 @app.route('/', methods=['POST'])
 @VerifyJWT

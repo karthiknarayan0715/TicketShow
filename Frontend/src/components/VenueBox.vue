@@ -33,6 +33,7 @@
         </div>
         <div class="footer" v-if="this.admin">
             <div class="box-button" v-if="this.admin" @click="()=>this.$emit('edit')">Edit</div>
+            <div class="box-button" v-if="this.admin" @click="()=>this.$emit('download')">Report</div>
             <div class="box-button red" v-if="this.admin" @click="()=>this.$emit('delete')">Delete</div>
         </div>
     </div>
@@ -100,13 +101,15 @@
 .box-button{
     height: 30px;
     padding: 5px;
-    width: 80px;
+    width: auto;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 30px;
     cursor: pointer;
     margin: auto;
+    padding-left: 15px;
+    padding-right: 15px;
     background-color: #00C9A7;
 }
 .box-button:hover {

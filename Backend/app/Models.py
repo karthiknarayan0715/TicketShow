@@ -61,7 +61,14 @@ class Screening(db.Model):
         available = venue.capacity
         self.available = available
     def as_dict(self):
-        return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
+        d = {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
+        print(self.venue_id, self.show_id)
+        venue = Venue.query.get(self.venue_id)
+        show = Shows.query.get(self.show_id)
+        d['venue'] = venue.as_dict()
+        d['show'] = show.as_dict()
+
+        return d
 class Shows(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String)
@@ -113,7 +120,10 @@ class Ticket(db.Model):
         self.screening_id = screening_id
         self.quantity = quantity
     def as_dict(self):
-        return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
+        d = {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
+        d['screening'] = Screening.query.get(self.screening_id).as_dict()
+
+        return d
 
 db.create_all()
 

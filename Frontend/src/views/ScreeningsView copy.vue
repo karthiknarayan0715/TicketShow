@@ -1,13 +1,12 @@
 <script>
-import ScreeningsBox from '../components/ScreeningsBox.vue'
-
+import ScreeningsBox from '../components/ScreeningsBox.vue';
+import {useCookies} from "vue3-cookies"
 export default {
     data() {
         return {
             all_shows: [],
             screenings_array: [],
             show_id: this.$route.query.show_id,
-            form_show_id: '',
             venue: {},
             screenings: {},
             venue_id: this.$route.query.venue_id,
@@ -18,22 +17,35 @@ export default {
             admin: false,
             edit: false,
             OverlayOpen: false,
-            loading: true,
-            edit_opened_screening_id: null,
-        };
-    },
-    async mounted() {
-        if (!this.$login.verify()) {
-            this.$router.push("/");
-            this.$toast.show("200", "Login first!");
         }
-        this.jwt = this.$login.verify();
-        this.user = await this.$login.getUserData();
-        this.admin = this.user.role == "admin";
-        await this.GetScreenings();
-        this.GetShows()
+    },
+    async mounted(){
+      if(!this.$login.verify()){
+        this.$router.push("/login")
+        this.$toast.show("400", "Not logged in or session expired")
+      }
+      this.jwt = this.$login.verify()
+      this.GetVenueData()
+      this.user = await this.$login.getUserData();
+      this.admin = this.user.role == "admin"
+      this.GetShows()
+      await this.GetScreenings()
     },
     methods: {
+      async GetVenueData(){
+        let req = {
+            "method": "GET",
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer '+ this.jwt
+          }
+          }
+          const res = await fetch(import.meta.env.VITE_APP_BACKEND_URL + `/venues/get?id=${this.venue_id}&jwt=${this.jwt}`, req)
+          const data = await res.json()
+          if(res.status == 200){
+            this.venue = data
+          }
+      },
       async GetShows(){
           let req = {
             "method": "GET",
@@ -48,59 +60,41 @@ export default {
             this.all_shows = data
           }
         },
-        async GetScreenings() {
-            this.loading = true;
-            let requestParams = '';
-            if (this.venue_id != null && this.show_id != null) {
-                requestParams = `/screenings/get?jwt=${this.jwt}&venue_id=${this.venue_id}&show_id=${this.show_id}`;
-            }
-            else if (this.venue_id != null) {
-                requestParams = `/screenings/get?jwt=${this.jwt}&venue_id=${this.venue_id}`;
-            }
-            else if (this.show_id != null) {
-                requestParams = `/screenings/get?jwt=${this.jwt}&show_id=${this.show_id}`;
-            }
-            else {
-                requestParams = `/screenings/get?jwt=${this.jwt}`;
-            }
-            let req = {
-                "method": "GET",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.jwt
-                },
-            };
-            let res = await fetch(import.meta.env.VITE_APP_BACKEND_URL + requestParams, req);
-            let data = await res.json();
-            this.screenings_array = data;
-            this.SortScreenings();
-        },
-        SortScreenings() {
-            this.screenings = {};
-            this.screenings_array.forEach(screening => {
-                if (Object.keys(this.screenings).includes(screening.venue_id)) {
-                    if (Object.keys(this.screenings[screening.venue_id]['dates']).includes(screening.date)) {
-                      if(Object.keys(this.screenings[screening.venue_id]['dates'][screening.date]).includes(screening.show_id)){
-                        this.screenings[screening.venue_id]['dates'][screening.date][screening.show_id]['timings'].push(screening)
-                      }
-                      else{
-                        this.screenings[screening.venue_id]['dates'][screening.date][screening.show_id] = {name: screening.show.name, timings: [screening]}
-                      }
-                    }
-                    else {
-                        this.screenings[screening.venue_id]['dates'][screening.date] = {};
-                        this.screenings[screening.venue_id]['dates'][screening.date][screening.show_id] = {name: screening.show.name, timings: [screening]};
-                    }
-                }
-                else {
-                    this.screenings[screening.venue_id] = { name: screening.venue.name, dates: {} };
-                    this.screenings[screening.venue_id]['dates'][screening.date] = {};
-                    this.screenings[screening.venue_id]['dates'][screening.date][screening.show_id] = {name: screening.show.name, timings: [screening]};
-                }
-            });
-            this.loading = false;
-        },
-        async AddScreening(){
+      async GetScreenings(){
+        let req = {
+          "method": "GET",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer '+ this.jwt
+          },
+        }
+        let res = await fetch(import.meta.env.VITE_APP_BACKEND_URL + `/screenings/get?jwt=${this.jwt}`, req)
+        let data = await res.json()
+
+        this.screenings_array = data
+
+        this.SortScreenings()
+      },
+      async SortScreenings(){
+        this.screenings = {}
+        this.screenings_array.forEach(screening =>{
+          let show = this.all_shows.filter((show)=>{
+            return show.id == screening.show_id
+          })[0]
+          if(Object.keys(this.screenings).includes(show.name)){
+            if(Object.keys(this.screenings[show['name']]).includes(screening.date))
+              this.screenings[show['name']][screening.date].push(screening)
+            else
+            this.screenings[show['name']][screening.date] = [screening]
+          }
+          else{
+            this.screenings[show['name']] = {}
+            this.screenings[show['name']][screening.date] = [screening]
+          }
+        })
+        console.log(this.screenings)
+      },
+      async AddScreening(){
         let datetime = new Date(this.date_time)
         let date = `${datetime.getDate()}/${datetime.getMonth()+1}/${datetime.getFullYear()}`
         let time = `${datetime.toLocaleString([], {
@@ -115,7 +109,7 @@ export default {
             },
             body: JSON.stringify({
               venue_id: this.venue_id,
-              show_id: this.form_show_id,
+              show_id: this.show_id,
               date: date,
               time: time,
               price: this.price
@@ -127,7 +121,7 @@ export default {
         if(res.status == 200)
           this.GetScreenings()
       },
-      async EditScreening(){
+      async EditScreening(id){
         let datetime = new Date(this.date_time)
         let date = `${datetime.getDate()}/${datetime.getMonth()+1}/${datetime.getFullYear()}`
         let time = `${datetime.toLocaleString([], {
@@ -143,7 +137,7 @@ export default {
             body: JSON.stringify({
               id: this.id,
               venue_id: this.venue_id,
-              show_id: this.form_show_id,
+              show_id: this.show_id,
               date: date,
               time: time,
               price: this.price
@@ -173,7 +167,7 @@ export default {
         }
       },
       OpenAddScreeningWindow(show_id, venue_id, show_name, date_time, price, edit = false, id=null) {
-        this.form_show_id = show_id;
+        this.show_id = show_id;
         this.venue_id = venue_id;
         this.show_name = show_name;
         this.date_time = date_time;
@@ -182,6 +176,7 @@ export default {
         if(this.edit && this.id!=null) console.error("Id  not provided")
         this.id = id
         this.OverlayOpen = true
+        // console.log(this.suggestions)
       }
     },
     computed: {
@@ -192,45 +187,34 @@ export default {
       }
     },
     components: { ScreeningsBox }
-}
+};
 </script>
 
 <template>
   <main>
-    <div class="main" v-if="!loading">
-      <div class="screenings" :class="{admin:admin}"  >
-        <div class="venue" v-for="venue in Object.keys(screenings)">
-          <div class="name">{{ screenings[venue].name }}</div>
-          <div class="date" v-for="date in Object.keys(screenings[venue]['dates'])">
-            <template v-if="date!=='name'">{{date}}</template>
-            <div class="show" v-for="show in Object.keys(screenings[venue]['dates'][date])">
-              <div class="name">{{screenings[venue]['dates'][date][show].name}}</div>
-              <div class="times">
-                <div v-for="screening in screenings[venue]['dates'][date][show]['timings']" style="position: relative;">
-                <ScreeningsBox  :screening="screening" :is_admin="admin" @rightclick="(e)=>{
-                  e.preventDefault();
-                  if (this.edit_opened_screening_id == screening.id) this.edit_opened_screening_id = null
-                  else this.edit_opened_screening_id = screening.id
-                }" />
-                <div class="right-click-dropdown" :class="{selected: this.edit_opened_screening_id === screening.id}" v-if="admin">
-                  <div class="dropdown-item" @click="()=>{
-                      this.edit_opened_screening_id = null
-                      OpenAddScreeningWindow(screening.show_id, screening.venue_id, screening.show.name, this.time, screening.price, true, screening.id)
-                  }">Edit</div>
-                  <div class="dropdown-item" @click="DeleteScreening(screening.id)">Delete</div>
-              </div>
-              </div>
-              </div>
-            </div>
-          </div>
+    <div class="main">
+      <div class="screenings" :class="{admin:admin}">
+        <div class="screening">
+          <ScreeningsBox :show_name="show_name" :screenings="screenings[show_name]" v-for="show_name in Object.keys(screenings)" @edit="(id)=>{
+            let screening = screenings_array.filter((s)=>{
+              return s.id == id
+            })[0]
+            let show = all_shows.filter((show)=>{
+              return show.id === screening.show_id
+            })[0]
+            OpenAddScreeningWindow(screening.show_id, screening.venue_id, show.name, screening.time, screening.price, true, screening.id)
+          }" @delete="(id)=>{
+            let screening = screenings_array.filter((s)=>{
+              return s.id == id
+            })[0]
+            DeleteScreening(screening.id) 
+          }" :is_admin="admin" />
         </div>
       </div>
       <div class="container" v-if="admin"><div class="add-screening" @click="()=>{
-        OpenAddScreeningWindow(this.form_show_id, this.venue_id, this.time, this.price)
+        OpenAddScreeningWindow(this.show_id, this.venue_id, this.time, this.price)
       }">Add Screening</div></div>
     </div>
-    <div class="loading" v-if="loading">Loading</div>
-
     <div class="overlay" v-if="OverlayOpen ">
       <div class="box">
         <div class="header">
@@ -240,7 +224,7 @@ export default {
         <div class="form">
           <div class="fields">
             <div class="field"><input type="text" placeholder="Venue ID" v-model="this.venue_id" disabled></div>
-            <div class="field"><input type="text" placeholder="Show ID" v-model="this.form_show_id" disabled></div>
+            <div class="field"><input type="text" placeholder="Show ID" v-model="this.show_id" disabled></div>
             <div class="field"><input type="text" placeholder="Show Name" v-model="this.show_name" disabled></div>
             <div class="field"><input type="datetime-local" placeholder="Time" v-model="this.date_time"></div>
             <div class="field"><input type="numerical" placeholder="Price" v-model="this.price"></div>
@@ -251,8 +235,8 @@ export default {
             <div class="title">Select the show</div>
             <div class="box">
               <div class="search"><input type="text" placeholder="Search" v-model="search_query"></div>
-              <div class="suggestion" :class="{selected: show.id == this.form_show_id}" @click="()=>{
-                this.form_show_id = show.id;
+              <div class="suggestion" :class="{selected: show.id == this.show_id}" @click="()=>{
+                this.show_id = show.id;
                 this.show_name = show.name;
               }" v-for="show in this.suggestions">
                 {{show.name}}
@@ -269,34 +253,6 @@ export default {
 .main{
   width: 100%;
   height: 100%;
-}
-.add-screening{
-  width: 80%;
-  height: 50px;
-  background-color: #008E9B;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50px;
-  cursor: pointer;
-}
-.add-screening:hover{
-  background-color: #1a919c;
-}
-.button{
-  width: 130px;
-  height: 40px;
-  border-radius: 40px;
-  background-color: #2189A7;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-}
-.button:hover{
-  opacity: 0.9;
 }
 .form{
   width: 100%;
@@ -328,41 +284,46 @@ input{
   text-align: center;
   border-radius: 5px;
 }
-.loading{
-  position: fixed;
-  width: 100%;
-  height: 100%;
+.button{
+  width: 130px;
+  height: 40px;
+  border-radius: 40px;
+  background-color: #2189A7;
+  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.123);
+  cursor: pointer;
+}
+.button:hover{
+  opacity: 0.9;
 }
 .screenings{
-  width: calc(100% - 60px);
-  height: calc(100% - 60px);
-  padding: 30px;
-  overflow: auto;
-}
-.screenings.admin{
-  width: calc(100% - 60px);
-  height: calc(100% - 160px);
-}
-.venue{
-  margin: 5px;
-}
-.venue .name{
-
-  font-size: 24px;
-  font-weight: 800 ;
-}
-.date{
-  padding-left: 30px;
-  font-size: 20px;
-}
-.times{
+  width: 100%;
+  height: 100%;
   display: flex;
 }
-
+.screening{
+  margin: 20px;
+}
+.screenings.admin{
+  width: 100%;
+  height: calc(100% - 100px);
+}
+.add-screening{
+  width: 80%;
+  height: 50px;
+  background-color: #008E9B;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50px;
+  cursor: pointer;
+}
+.add-screening:hover{
+  background-color: #1a919c;
+}
 .container{
   width: 100%;
   height: 100px;
@@ -465,32 +426,5 @@ input{
   width: 80%;
   height: 30px;
   margin: 15px;
-}
-
-.right-click-dropdown{
-  position: absolute;
-  z-index: 10;
-  width: 100px;
-  height: auto;
-  margin-left: 10px;
-  font-weight: 700;
-  background-color: red;
-  transform-origin: top left;
-  transform: scaleY(0);
-  overflow: hidden;
-  transition-duration: 200ms;
-}
-.right-click-dropdown.selected{
-  
-  transform: scaleY(1);
-}
-.dropdown-item{
-  width: 100%;
-  padding: 15px;
-  background-color: antiquewhite;
-  cursor: pointer;
-}
-.dropdown-item:hover{
-  background-color: rgb(237, 221, 199);
 }
 </style>

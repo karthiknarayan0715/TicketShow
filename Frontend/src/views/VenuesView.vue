@@ -125,7 +125,46 @@ export default {
         this.capacity = capacity
         this.addVenueBox = true
         this.edit = edit
+      },
+      async downloadCSV(id) {
+      const venueId = id; // Replace with the desired venue_id
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/generate_csv?venue_id=${venueId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'text/csv', // Set the content type as CSV
+          },
+        });
+
+        if (!response.ok) {
+          let data = await response.json()
+          this.$toast.show(response.status, data.message)
+          return
+        }
+
+        const blob = await response.blob();
+        console.log(blob)
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'venue_report.csv');
+
+        // Append the link to the DOM and trigger the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the temporary URL and link element
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Error generating CSV:', error);
       }
+      },
     },
     components: { VenueBox }
 };
@@ -136,12 +175,14 @@ export default {
     <div class="main">
       <div class="venues" :class="{admin: admin}">
         <div class="venue" v-for="venue in this.venues">
-          <VenueBox :is_admin=this.admin :id=venue.id :name=venue.name :place=venue.place :location=venue.location :capacity=venue.capacity @delete="this.DeleteVenue(venue.id)" @edit="this.OpenAddVenue(venue.id, venue.name, venue.place, venue.location, venue.capacity, true)" />
+          <VenueBox :is_admin=this.admin :id=venue.id :name=venue.name :place=venue.place :location=venue.location :capacity=venue.capacity @delete="this.DeleteVenue(venue.id)" @edit="this.OpenAddVenue(venue.id, venue.name, venue.place, venue.location, venue.capacity, true)" @download="()=>downloadCSV(venue.id)" />
         </div>
       </div>
-      <div class="container" v-if="admin"><div class="add-venue" @click="()=>{
+      <div class="container" v-if="admin">
+        <div class="bottom-button" @click="()=>{
         this.OpenAddVenue()
-      }">Add Venue</div></div>
+      }">Add Venue</div>
+    </div>
     </div>
     <div class="overlay" v-if="addVenueBox ">
       <div class="box">
@@ -219,7 +260,7 @@ input{
   width: 100%;
   height: calc(100% - 100px);
 }
-.add-venue{
+.bottom-button{
   width: 80%;
   height: 50px;
   background-color: #008E9B;
@@ -229,8 +270,10 @@ input{
   align-items: center;
   border-radius: 50px;
   cursor: pointer;
+  margin-left: 10px;
+  margin-right: 10px;
 }
-.add-venue:hover{
+.bottom-button:hover{
   background-color: #1a919c;
 }
 .container{

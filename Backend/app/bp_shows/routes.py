@@ -84,6 +84,9 @@ def delete_show():
     show = Shows.query.get(show_id)
     if show is None:
         return jsonify(message='Show not found'), 404
+    screenings = Screening.query.filter_by(show_id=show.id)
+    for screening in screenings:
+        db.session.delete(screening)
     db.session.delete(show)
     db.session.commit()
     return jsonify(message='Show deleted successfully')

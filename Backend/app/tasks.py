@@ -7,12 +7,69 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
+import csv
+import tempfile
 
 @celery.on_after_finalize.connect
 def monthy_remainder_task(sender, **kwargs):
     sender.add_periodic_task(crontab(day_of_month=1), monthly_remainder.s())
     sender.add_periodic_task(crontab(hour="16", minute="30"), daily_remainder.s())
+
+import os
+import csv
+from flask import send_file
+
+@celery.task()
+def csv_report(venue_id):
+    screenings_for_venue = Screening.query.filter_by(venue_id=venue_id).all()
+    screening_data = []
+
+    for screening in screenings_for_venue:
+        screening_dict = screening.as_dict()
+
+        # Get the show and venue names
+        show_name = screening_dict['show']['name']
+        venue_name = screening_dict['venue']['name']
+
+        del screening_dict['show']
+        del screening_dict['venue']
+
+        # Count the number of tickets booked for this screening
+        tickets_booked = Ticket.query.filter_by(screening_id=screening.id).count()
+
+        # Add the show name, venue name, and ticket count to the dictionary
+        screening_dict['show_name'] = show_name
+        screening_dict['venue_name'] = venue_name
+        screening_dict['tickets_booked'] = tickets_booked
+
+        screening_data.append(screening_dict)
+
+    if len(screening_data) > 0:
+        # Generate a filename using the venue_id and current timestamp
+        filename = f'venue_{venue_id}_report_{datetime.now().strftime("%Y%m%d%H%M%S")}.csv'
+        
+        # Create the 'static' directory if it doesn't exist
+        static_dir = os.path.join(os.path.curdir, 'static')
+        os.makedirs(static_dir, exist_ok=True)
+        
+        # Save the data to the 'static' directory
+        temp_file_path = os.path.join(static_dir, filename)
+        
+        with open(temp_file_path, mode='w', newline='') as csvfile:
+            fieldnames = screening_data[0].keys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            # Write the header
+            writer.writeheader()
+
+            # Write the data rows
+            for data_row in screening_data:
+                writer.writerow(data_row)
+        
+        return temp_file_path
+    else:
+        return None
+
 
 @celery.task()
 def monthly_remainder():

@@ -8,7 +8,8 @@ export default {
     return {
       user: {},
       dropDown: false,
-      isLoggedIn: false
+      isLoggedIn: false,
+      query: ""
     }
   },
   mounted(){
@@ -39,7 +40,7 @@ export default {
 <template>
   <div id="header">
     <div class="title" @click="()=>this.$router.push('/')">Ticket Show</div>
-    <div class="search"><input type="search" placeholder="search?" style="height: 40px; width: 300px; margin-left: 30px; padding: 15px;"></div>
+    <div class="search"><input type="search" placeholder="search?" v-model="this.query" style="height: 40px; width: 300px; margin-left: 30px; padding: 15px;"><div class="submit" @click="this.$router.push(`/search?query=${query}`)">Search</div></div>
     <div class="to-right">
       <div class="nav-button" v-if="!this.isLoggedIn" @click="()=>this.$router.push('/login')">Login</div>
       <div class="nav-button" v-if="!this.isLoggedIn" @click="()=>this.$router.push('/register')">Register</div>
@@ -48,7 +49,7 @@ export default {
       </span></div>
       <div class="drop-down" :class="{show: dropDown}">
         <div class="drop-down-content" v-if="dropDown">
-          <div class="drop-down-item">Profile</div>
+          <div class="drop-down-item" @click="this.$router.push('/')">Home</div>
           <div class="drop-down-item" @click="()=>{
             this.$router.push(`/venues/`)
             this.ToggleDropDown()
@@ -81,6 +82,22 @@ export default {
     margin-left: 20px;
     color: white;
     cursor: pointer;
+  }
+  .search{
+    display: flex;
+  }
+  .search .submit{
+    margin-left: 10px;
+    width: 100px;
+    padding: 10px;
+    background-color: #C34A36;
+    text-align: center;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+  }
+  .search .submit:hover{
+    background-color: #a84634;
   }
   .to-right{
     margin-left: auto;

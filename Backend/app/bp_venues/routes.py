@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from app.Models import Venue
+from app.Models import Venue, Screening
 from app.Middlewares import VerifyJWT, isAdmin
 from app.Helpers import DecodeJWT
 from app import db
@@ -72,6 +72,9 @@ def delete_venue():
         venue = Venue.query.get(venue_id)
         if venue is None:
             return jsonify(message='Venue not found'), 400
+        screenings = Screening.query.filter_by(venue_id=venue_id)
+        for screening in screenings:
+            db.session.delete(screening)
         db.session.delete(venue)
         db.session.commit()
         return jsonify(message='Venue deleted successfully')
